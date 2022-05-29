@@ -1,5 +1,5 @@
 import { ApiService } from '../api/api';
-import { SellinBotDB } from '../db/sellinbotdb';
+import { SellinBotDB } from '../db/sellinbot-payment-db';
 import { IDBSelect } from '../../interfaces/db/select_rows';
 import { ICreatePayout, IGetPayoutRequiredFields, IListPayout, ISimulateTransaction } from '../../interfaces/rapyd/ipayout';
 

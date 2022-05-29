@@ -1,7 +1,7 @@
 import { DBSecurity } from './security';
 import { ILogin, ILoginTransportObj } from './../../interfaces/db/ilogin';
 import { HelperService } from './../util/helper';
-import { SellinBotDB } from '../db/sellinbotdb';
+import { SellinBotDB } from '../db/sellinbot-payment-db';
 import { IDBSelect } from '../../interfaces/db/select_rows';
 import { IUserObject } from '../../interfaces/db/idbcontact';
 

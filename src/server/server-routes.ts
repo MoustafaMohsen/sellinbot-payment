@@ -3,7 +3,7 @@ import { VccService } from './../services/models/vcc';
 import { PaymentService } from './../services/models/payment';
 import { ICreateWallet, IDBWallet, IWallet2Wallet } from './../interfaces/db/idbwallet';
 import { IDBContact, IUserObject } from './../interfaces/db/idbcontact';
-import { SellinBotDB } from './../services/db/sellinbotdb';
+import { SellinBotDB } from './../services/db/sellinbot-payment-db';
 import { ICreateChckoutPage, ICurrency, IdentityVerification, IWallet } from '../interfaces/rapyd/iwallet';
 import { WalletService } from '../services/models/wallet';
 import { ApiService } from '../services/api/api';
@@ -311,7 +311,7 @@ export default class SellinBotServerRoutes extends SellinBotServerCore {
                     fixed_side: "sell",
                     ...req.body
                 }
-                paymentSrv.generate_chckout_page(request).then(r => {
+                paymentSrv.generate_checkout_page(request).then(r => {
                     send(res, r.body.data, t0)
                 }).catch(error => {
                     err(res, error?.body?.status?.message, t0)

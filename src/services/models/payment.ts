@@ -1,7 +1,5 @@
 import { ApiService } from '../api/api';
 import { ListPayments, RequiredFields, PostCreatePayment, IPayment } from '../../interfaces/rapyd/ipayment';
-import { SellinBotDB } from '../db/sellinbotdb';
-import { IDBSelect } from '../../interfaces/db/select_rows';
 import { ICreateChckoutPage } from '../../interfaces/rapyd/iwallet';
 
 export class PaymentService {
@@ -27,7 +25,7 @@ export class PaymentService {
         return apiSrv.get<PostCreatePayment.Response>("payments/" + payment_id);
     }
 
-    generate_chckout_page(request: ICreateChckoutPage.Request) {
+    generate_checkout_page(request: ICreateChckoutPage.Request) {
         var apiSrv = new ApiService();
         return apiSrv.post<ICreateChckoutPage.Response>("checkout/", request);
     }

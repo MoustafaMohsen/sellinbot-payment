@@ -15,9 +15,9 @@ export class SellinBotDB {
     }
 
     async setupDb() {
-        const client2 = await this.connect();
-        await this.create_user_tabel(client2);
-        await client2.end();
+        const client = await this.connect();
+        await this.create_user_tabel(client);
+        await client.end();
         console.log("DB is ready");
         return
     }
@@ -50,41 +50,11 @@ export class SellinBotDB {
     }
 
     // ======= Create Tables
-    async create_user_tabel(client: Client, tablename = "dbusers") {
+    async create_user_tabel(client: Client, tablename = "checkouts") {
         await client.query("DROP TABLE IF EXISTS " + tablename + ";")
         let result = await client.query(`CREATE TABLE IF NOT EXISTS ${tablename} (
             id SERIAL PRIMARY KEY,
-            first_name VARCHAR ( 255 ),
-            last_name VARCHAR ( 64 ),
-            email VARCHAR ( 255 ) NOT NULL UNIQUE,
-            phone_number VARCHAR ( 64 ) NOT NULL UNIQUE,
-            date_of_birth VARCHAR ( 64 ),
-            country VARCHAR ( 64 ),
-            password_hash VARCHAR ( 255 ) NOT NULL,
-            line_1 VARCHAR ( 255 ),
-            line_2 VARCHAR ( 255 ),
-            line_3 VARCHAR ( 255 ),
-            city VARCHAR ( 64 ),
-            state VARCHAR ( 255 ),
-            zip VARCHAR ( 64 ),
-
-            gender VARCHAR ( 8 ),
-            identification_type VARCHAR ( 64 ),
-            identification_number VARCHAR ( 64 ),
-            verification_status VARCHAR ( 64 ),
-
-            contact_id VARCHAR ( 255 ),
-            customer_id VARCHAR ( 255 ),
-            ewallet_id VARCHAR ( 255 ),
-            ewallet_status VARCHAR ( 255 ),
-            ewallet_category VARCHAR ( 255 ),
-            wallet_currency VARCHAR ( 255 ),
-            wallet_alias VARCHAR ( 255 ),
-            wallet_balance VARCHAR ( 255 ),
-            wallet_received_balance VARCHAR ( 255 ),
-            wallet_on_hold_balance VARCHAR ( 255 ),
-            wallet_reserve_balance VARCHAR ( 255 ),
-
+            checkout_id VARCHAR ( 255 ),
             meta TEXT,
             timestamp timestamp default current_timestamp
 );`)
