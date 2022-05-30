@@ -188,7 +188,6 @@ export class WalletService {
         var userSrv = new UserService();
         var user = await userSrv.get_user({ id })
         let wallet_id = user.meta.rapyd_contact_data.ewallet;
-
         var apiSrv = new ApiService();
         return new Promise((resolve, reject) => {
             apiSrv.get<WalletBalanceResponse[]>("user/" + wallet_id + "/accounts").then(async (res) => {

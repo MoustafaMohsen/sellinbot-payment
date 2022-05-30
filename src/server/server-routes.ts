@@ -1,5 +1,4 @@
 import { UserService } from './../services/models/user';
-import { VccService } from './../services/models/vcc';
 import { PaymentService } from './../services/models/payment';
 import { ICreateWallet, IDBWallet, IWallet2Wallet } from './../interfaces/db/idbwallet';
 import { IDBContact, IUserObject } from './../interfaces/db/idbcontact';
@@ -11,7 +10,6 @@ import performance from "perf_hooks";
 import express from "express";
 import SellinBotServerCore from './core/server-core';
 import { RapydUtilties } from '../services/util/utilities';
-import { ISetCardStatus, ISimulateCardAuthorization, IssueVcc, IssueVccRequestForm } from '../interfaces/rapyd/ivcc';
 
 export default class SellinBotServerRoutes extends SellinBotServerCore {
 
@@ -58,7 +56,7 @@ export default class SellinBotServerRoutes extends SellinBotServerCore {
             }
         })
 
-        this.app.post('/admin/setup-db/' + process.env.SELLINBOT_KEY, async (req, res) => {
+        this.app.post('/admin/prepare-db/' + process.env.SELLINBOT_KEY, async (req, res) => {
             let t0 = performance.performance.now();
             let data = {} as any;
             const db = new SellinBotDB();
@@ -77,8 +75,14 @@ export default class SellinBotServerRoutes extends SellinBotServerCore {
             try {
                 const userSrv = new UserService();
                 let body: IUserObject = req.body;
-                userSrv.get_user(body).then((d) => {
-                    send(res, d, t0)
+                userSrv.get_user(body).then(async (d) => {
+                    if (d && d.id) {                        
+                        let wallet = new WalletService()
+                        let user = await wallet.refresh_user_wallet_account(d.id);
+                        send(res, user, t0)
+                    }else{
+                        err(res, "Incorrect Password", t0)
+                    }
                 }).catch(e => {
                     err(res, e, t0)
                 })
@@ -88,7 +92,7 @@ export default class SellinBotServerRoutes extends SellinBotServerCore {
         })
 
 
-        this.app.post('/user/create', async (req, res) => {
+        this.app.post('/user/create' + process.env.SELLINBOT_KEY, async (req, res) => {
             let t0 = performance.performance.now();
             try {
                 const userSrv = new UserService();
@@ -135,7 +139,7 @@ export default class SellinBotServerRoutes extends SellinBotServerCore {
             }
         })
 
-        this.app.post('/user/delete', async (req, res) => {
+        this.app.post('/user/delete' + process.env.SELLINBOT_KEY, async (req, res) => {
             let t0 = performance.performance.now();
             try {
                 const userSrv = new UserService();
@@ -144,84 +148,6 @@ export default class SellinBotServerRoutes extends SellinBotServerCore {
                     send(res, d, t0)
                 }).catch(e => {
                     err(res, e, t0)
-                })
-            } catch (error) {
-                err(res, error, t0)
-            }
-        })
-
-        // ================================================
-        // ==================== VCC =======================
-        // ================================================
-        this.app.post('/vcc/get', async (req, res) => {
-            let t0 = performance.performance.now();
-            try {
-                const vccSrv = new VccService();
-                vccSrv.get_contact_cards(req.body.id).then((d) => {
-                    send(res, d, t0)
-                }).catch(e => {
-                    err(res, e, t0)
-                })
-            } catch (message) {
-                err(res, message, t0)
-            }
-        })
-
-        this.app.post('/vcc/create', async (req, res) => {
-            let t0 = performance.performance.now();
-            try {
-                const vccSrv = new VccService();
-                let body: IssueVcc = req.body;
-                vccSrv.create_vcc_to_user(body).then((user) => {
-                    send(res, user, t0)
-                }).catch(e => {
-                    err(res, e, t0)
-                })
-            } catch (message) {
-                err(res, message, t0)
-            }
-        })
-
-        this.app.post('/vcc/transactions', async (req, res) => {
-            let t0 = performance.performance.now();
-            try {
-                const vccSrv = new VccService();
-                let body: { card_id: number } = req.body;
-                vccSrv.list_card_transactions(body.card_id).then((d) => {
-                    send(res, d, t0)
-                }).catch(e => {
-                    err(res, e, t0)
-                })
-            } catch (message) {
-                err(res, message, t0)
-            }
-        })
-
-        this.app.post('/vss/status/set', async (req, res) => {
-            let t0 = performance.performance.now();
-            try {
-                const vccSrv = new VccService();
-                let body: ISetCardStatus = req.body;
-                vccSrv.set_card_status(body).then((d) => {
-                    send(res, d, t0)
-                }).catch(e => {
-                    err(res, e, t0)
-                })
-            } catch (message) {
-                err(res, message, t0)
-            }
-        })
-
-        this.app.post('/vcc/authorization', async (req, res) => {
-            let t0 = performance.performance.now();
-            let data = {} as any;
-            let act = new VccService();
-            try {
-                let body: ISimulateCardAuthorization = req.body;
-                act.simulate_card_authorization(body).then(r => {
-                    send(res, r, t0)
-                }).catch(error => {
-                    err(res, error, t0)
                 })
             } catch (error) {
                 err(res, error, t0)
@@ -275,8 +201,8 @@ export default class SellinBotServerRoutes extends SellinBotServerCore {
             let t0 = performance.performance.now();
             try {
                 const walletSrv = new WalletService();
-                let body: { id: number } = req.body;
-                walletSrv.update_wallet_accounts(body.id).then((d) => {
+                let user = await UserService.getUser()
+                walletSrv.update_wallet_accounts(user.id).then((d) => {
                     send(res, d, t0)
                 }).catch(e => {
                     err(res, e, t0)
@@ -295,6 +221,8 @@ export default class SellinBotServerRoutes extends SellinBotServerCore {
             let data = {} as any;
             let paymentSrv = new PaymentService();
             try {
+                let user = await UserService.getUser()
+                let ewallet = user.ewallet_id; // checkout distenation
                 let request: ICreateChckoutPage.Request = {
                     custom_elements: {
                         save_card_default: true,
@@ -305,10 +233,15 @@ export default class SellinBotServerRoutes extends SellinBotServerCore {
                         dynamic_currency_conversion: true,
                         merchant_color: "#FF0000"
                     },
-                    cardholder_preferred_currency: true,
+                    // cardholder_preferred_currency: true,
                     language: "en",
-                    requested_currency: "USD",
-                    fixed_side: "sell",
+                    // requested_currency: "USD",
+                    // fixed_side: "sell",
+                    // payment_method_type: "us_visa_card",
+                    payment_method_type: "us_mastercard_card",
+                    country: "US",
+                    currency: "USD",
+                    ewallet,
                     ...req.body
                 }
                 paymentSrv.generate_checkout_page(request).then(r => {

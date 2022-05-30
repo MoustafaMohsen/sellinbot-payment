@@ -6,7 +6,7 @@ import { IUtilitiesResponse } from "../../interfaces/rapyd/rest-response";
 import https  from "https";
 const access_key = process.env.RAPYD_ACCESS_KEY 
 const secretKey = process.env.RAPYD_SECRET_KEY 
-const log = true;
+const log = false;
 
 export class RapydUtilties {
     constructor() {}

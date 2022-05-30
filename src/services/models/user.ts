@@ -6,7 +6,7 @@ import { IDBSelect } from '../../interfaces/db/select_rows';
 import { IUserObject } from '../../interfaces/db/idbcontact';
 
 export class UserService {
-    constructor() { }
+    constructor(private parseArr: string[] = ["meta"]) { }
 
     async create_new_user(user: IUserObject) {
         const db = new SellinBotDB();
@@ -26,14 +26,31 @@ export class UserService {
         return this.parse_user_object(results.rows[0]);
 
     }
+    async get_all_users() {
+        const db = new SellinBotDB();
+        let client = await db.connect();
+        let results = await client.query<IUserObject>(`SELECT * FROM dbusers`);
+        for (let i = 0; i < results.rows.length; i++) {
+            let row = results.rows[i];
+            row = this.parse_object(row);
+        }
+        return results.rows
+    }
     async update_user(user: IUserObject, newuser: IUserObject) {
         const db = new SellinBotDB();
         let results = await db.update_object<IUserObject>(newuser, user, 'dbusers');
         let result = await this.get_user(user);
         return result;
     }
+    static async getUser() {
+        const userSrv = new UserService();
+        let user: IUserObject[] = await userSrv.get_all_users()
+        if (!user) {
+            throw "Please register an account"
+        }
+        return user[0]
+    }
 
-        
     async delete_user(user: IUserObject) {
         const db = new SellinBotDB();
         let results = await db.delete_object<IUserObject>(user, "AND", 'dbcontact');
@@ -44,11 +61,11 @@ export class UserService {
         const db = new SellinBotDB();
         const query_str = {
             text: `SELECT phone_number FROM dbcontact WHERE phone_number LIKE $1 AND ewallet LIKE ewallet LIMIT $2`,
-            values: ["%"+phone_number+"%", limit]
+            values: ["%" + phone_number + "%", limit]
         };
         const client = await db.connect()
         let result = await client.query(query_str);
-        return result.rows.map(u=>u.phone_number)
+        return result.rows.map(u => u.phone_number)
     }
     // TODO: delete user
 
@@ -90,7 +107,7 @@ export class UserService {
         // if not register login
         user = {};
         let new_user: IUserObject = {
-            meta:{
+            meta: {
                 security: this.get_user_security(user)
             },
             phone_number: _login.phone_number
@@ -288,6 +305,21 @@ export class UserService {
         } catch (error) {
             console.error(error);
             return user
+        }
+    }
+    private parse_object(obj, parseArr: string[] = this.parseArr) {
+        try {
+            for (let i = 0; i < parseArr.length; i++) {
+                const key = parseArr[i];
+                if (obj[key]) {
+                    obj[key] = this.parse_if_string(obj[key]) as any;
+                } else {
+                    obj[key] = {}
+                }
+            }
+            return obj;
+        } catch (error) {
+            return obj
         }
     }
     parse_user(user: IUserObject) {
